@@ -4,7 +4,7 @@
 :author: Mikolaj Metelski
 """
 from core import AbstractModel
-from analytics import run_on_param_grid
+from analytics import run_on_param_grid, calibrate_on_param_grid
 
 
 class Foo(AbstractModel):
@@ -42,3 +42,12 @@ if __name__ == "__main__":
                             3,
                             number=[-1, 0, 1],
                             arr=[[1, 2, 3], [-1, 2, 5]]))
+    # manual test; put into a unit test
+    model = Bar(3, [1, 2, 3])
+    print(calibrate_on_param_grid(Bar, 3, target=lambda x: x**2,
+                                  number=[-1, 0, 1],
+                                  arr=[[1, 2, 3], [-1, 2, 5]]))
+    # manual test; put into a unit test
+    model = Bar(3, [1, 2, 3])
+    run_results = run_on_param_grid(Bar, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]]))
+    print(calibrate_on_run_results(run_results target=lambda x: x**2))

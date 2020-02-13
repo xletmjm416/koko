@@ -11,12 +11,15 @@ from itertools import product
 def recursive_dict():
     return defaultdict(recursive_dict)
 
+
 def set_recursive_item(val, recursive_dict, labels):
+    raise NotImplementedError("do not use, untested")
     for idx, label in enumerate(labels):
         if idx == len(labels) - 1:
             recursive_dict[label] = val
         else:
             recursive_dict[label] = recursive_dict[labels[idx + 1]]
+
 
 def walk_and_call(func, node, path=[]):
     """Walk on a dictionary as a tree and call `func` on
@@ -35,7 +38,7 @@ def walk_and_call(func, node, path=[]):
         for label, item in node.items():
             walk_and_call(func, item, new_path)
     else:
-        return func(node, new_path)
+        func(node, new_path)
 
 
 def product_of_dicts(**kwargs):
@@ -52,7 +55,7 @@ def product_of_dicts(**kwargs):
 
 
 def run_on_param_grid(model, data, **params_ranges):
-    """Run model on grid of its params. Pass the arguments 
+    """Run model on grid of its params. Pass the arguments
     of the model as keyword arguments with list values:
     ```
     run_on_param_grid(mymodel, mydata, a=[1, 2], b=[True, False])
@@ -71,7 +74,7 @@ def run_on_param_grid(model, data, **params_ranges):
 
     Args:
         model: inherits from AbstractModel
-        data: model will be called with the same data 
+        data: model will be called with the same data
             for each parameter combination
         params_ranges: keyword arguments of the model with lists of values
     Returns:
@@ -81,3 +84,38 @@ def run_on_param_grid(model, data, **params_ranges):
     for params in product_of_dicts(**params_ranges):
         results[str(params)] = model(**params)(data)
     return results
+
+
+def calibrate_on_param_grid(model, data, target, **params_ranges):
+    """Run the model on a parameter grid and pick a set of parameters
+    that minimises `target`.
+    
+    If you already called run_on_param_grid and have the results, use calibrate_on_run_results instead.
+
+    Todo:
+            Input validation
+
+    Args:
+        model: inherits from AbstractModel
+        data: model will be called with the same data
+            for each parameter combination
+        target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
+        params_ranges: keyword arguments of the model with 
+            lists of values
+    Returns:
+        dict: key is a tuple made from a combination of params
+    See:
+        calibrate_on_run_results
+    """
+    results = run_on_param_grid(model, data, **params_ranges)
+    return calibrate_on_run_results(results, target
+
+
+def calibrate_on_run_results(results, target):
+    """Pick a set of parameters that minimises target given the results of run_on_param_grid. If you don't have the run results, use
+    calibrate_on_param_grid.
+    target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
+    See:
+        calibrate_on_param_grid"""
+    optimal_param_set = min({k: target(k, v) for k, v in results.items()}, key=results.get)
+    return optimal_param_set, results.get(optimal_param_set)
