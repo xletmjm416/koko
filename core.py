@@ -16,8 +16,4 @@ class AbstractModel(ABC):
         pass
 
 if __name__ == "__main__":
-    # manual test; put into a unit test
-    try:
-        model = AbstractModel()
-    except TypeError:
-        print("ok")
+    pass
