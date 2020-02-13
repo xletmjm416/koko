@@ -5,6 +5,7 @@
 """
 
 from collections import defaultdict
+from collections import Mapping
 from itertools import product
 
 
@@ -21,25 +22,28 @@ def set_recursive_item(val, recursive_dict, labels):
             recursive_dict[label] = recursive_dict[labels[idx + 1]]
 
 
-def walk_and_call(func, node, path=[]):
+def map_nested(func, node, path=[]):
     """Walk on a dictionary as a tree and call `func` on
     each leaf.
 
     Args:
         func: callable taking two arguments: the leaf and the path to it
             (path as list)
-        node: dictionary
+        node (collections.Mapping): the (sub)tree
         path: (for recursive use only)
     Returns:
-        T: type of func's return
+        nested dict, on leaved of type returned by func.
+    
+    Source:
+        https://stackoverflow.com/questions/32935232/python-apply-function-to-values-in-nested-dictionary
     """
     new_path = path.copy()
-    if isinstance(node, dict):
-        for label, item in node.items():
-            walk_and_call(func, item, new_path)
+    if isinstance(node, Mapping):
+        for k, v in node.items():
+            return {k: map_nested(func, v, new_path + [k])
+                for k, v in node.items()}
     else:
-        func(node, new_path)
-
+        return func(node, new_path)
 
 def product_of_dicts(**kwargs):
     """Cartesian product of dictionaries.
@@ -70,7 +74,8 @@ def run_on_param_grid(model, data, **params_ranges):
 
     Todo:
         Input validation
-        Use recursive_dict - do not rely on key ordering
+        Use recursive_dict
+        do not rely on key ordering
 
     Args:
         model: inherits from AbstractModel
@@ -108,14 +113,22 @@ def calibrate_on_param_grid(model, data, target, **params_ranges):
         calibrate_on_run_results
     """
     results = run_on_param_grid(model, data, **params_ranges)
-    return calibrate_on_run_results(results, target
+    return calibrate_on_run_results(results, target)
 
 
 def calibrate_on_run_results(results, target):
-    """Pick a set of parameters that minimises target given the results of run_on_param_grid. If you don't have the run results, use
-    calibrate_on_param_grid.
-    target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
+    """Pick a set of parameters that minimises target given the results of run_on_param_grid. 
+    If you don't have the run results, use calibrate_on_param_grid instead.
+
+    Todo:
+        Input validation
+
+    Args:
+        results: returned from run_on_param_grid
+        target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
     See:
         calibrate_on_param_grid"""
-    optimal_param_set = min({k: target(k, v) for k, v in results.items()}, key=results.get)
+    optimal_param_set = min({k: target(k, v) 
+        for k, v in results.items()},
+        key=results.get)
     return optimal_param_set, results.get(optimal_param_set)
