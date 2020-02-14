@@ -29,11 +29,11 @@ def map_nested(func, node, path=[]):
     Args:
         func: callable taking two arguments: the leaf and the path to it
             (path as list)
-        node (collections.Mapping): the (sub)tree
+        node (collections.Mapping): the tree
         path: (for recursive use only)
     Returns:
         nested dict, on leaved of type returned by func.
-    
+
     Source:
         https://stackoverflow.com/questions/32935232/python-apply-function-to-values-in-nested-dictionary
     """
@@ -45,13 +45,20 @@ def map_nested(func, node, path=[]):
     else:
         return func(node, new_path)
 
+
 def product_of_dicts(**kwargs):
     """Cartesian product of dictionaries.
+
     Args:
         kwargs: dictionary of lists
+
     Returns:
-        list of dictionaries containing combinations of key-value pairs given in elements of kwargs.
-    Source: https://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists"""
+        list of dictionaries containing combinations of key-value pairs
+        given in elements of kwargs.
+
+    Source:
+        https://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
+    """
     keys = kwargs.keys()
     vals = kwargs.values()
     for instance in product(*vals):
@@ -60,10 +67,10 @@ def product_of_dicts(**kwargs):
 
 def run_on_param_grid(model, data, **params_ranges):
     """Run model on grid of its params.
-    
-    If you just want to run the model (on one set of 
+
+    If you just want to run the model (on one set of
     parameters and one dataset), use `model(**params)(data)` instead.
-    
+
     Pass the arguments
     of the model as keyword arguments with list values:
     ```
@@ -78,10 +85,11 @@ def run_on_param_grid(model, data, **params_ranges):
     ```
 
     Todo:
-        . Input validation
-        . Use recursive_dict/fix the key convention
-        . do not rely on key ordering
-        . if you don't pass a list, fix value and not show up in results as separate key
+        [ ] Input validation
+        [-] Use recursive_dict/fix the key convention
+        [x] do not rely on key ordering
+        [ ] if you don't pass a list, fix value and do
+            not show up in results as separate key
 
     Args:
         model: inherits from AbstractModel
@@ -92,30 +100,34 @@ def run_on_param_grid(model, data, **params_ranges):
         dict: key is a tuple made from a combination of params,
             val is the result of the run
     """
-    results = dict()
-    for params in product_of_dicts(**params_ranges):
-        results[str(params)] = model(**params)(data)
-    return results
+    def inner(params):
+        return (params, model(**params)(data))
+    return map(inner, product_of_dicts(**params_ranges))
 
 
 def calibrate_on_param_grid(model, data, target, **params_ranges):
     """Run the model on a parameter grid and pick a set of parameters
     that minimises `target`.
-    
-    If you already called run_on_param_grid and have the results, use calibrate_on_run_results instead.
+
+    If you already called run_on_param_grid and have the results,
+    use calibrate_on_run_results instead.
 
     Todo:
-            Input validation
+        [ ] Input validation
 
     Args:
         model: inherits from AbstractModel
         data: model will be called with the same data
             for each parameter combination
-        target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
-        params_ranges: keyword arguments of the model with 
+        target: a function that accepts two positional arguments:
+            parameters used in the model (as a stringified dict) and
+            a possible model output.
+        params_ranges: keyword arguments of the model with
             lists of values
+
     Returns:
         dict: key is a tuple made from a combination of params
+
     See:
         calibrate_on_run_results
     """
@@ -124,20 +136,25 @@ def calibrate_on_param_grid(model, data, target, **params_ranges):
 
 
 def calibrate_on_run_results(results, target):
-    """Pick a set of parameters that minimises target given the results of run_on_param_grid. 
+    """Pick a set of parameters that minimises target
+    given the results of run_on_param_grid.
+
     If you don't have the run results, use calibrate_on_param_grid instead.
 
     Todo:
-        Input validation
+        [ ] Input validation
 
     Args:
         results: returned from run_on_param_grid
-        target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
+        target: a function that accepts two positional arguments:
+            parameters used in the model (as a stringified dict) and
+            a possible model output.
+
     See:
         calibrate_on_param_grid
         run_on_param_grid
     """
-    optimal_param_set = min({k: target(k, v) 
+    optimal_param_set = min({k: target(k, v)
         for k, v in results.items()},
         key=results.get)
     return optimal_param_set, results.get(optimal_param_set)
