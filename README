@@ -24,7 +24,7 @@ Koko:
 [ ] supports cloud computing
 [x] is thoroughly unit tested and documented
 
-Koko was built as a personal project by Mikolaj Metelski under Academic Free License.
+Koko was built as a personal project by Mikolaj Metelski under MIT License.
 Feel free to build your extensions on top of Koko. This is what it's for - on its own, it does nothing.
 
 Koko design guidelines.
