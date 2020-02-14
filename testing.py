@@ -26,13 +26,42 @@ class BarModel(AbstractModel):
     def __call__(self, data: float) -> float:
         return max(self.number, max(data, max(self.arr)))
 
+class AbstractModelTest(unittest.TestCase):
+    def setUp(self):
+        self.foo_model = FooModel(3)
+        self.bar_model = BarModel(3, [1, 2, 3])
+
+    def test_init(self):
+        self.assertRaises(TypeError, AbstractModel)
+
+    def test_FooBarModel(self):
+        self.assertEqual(self.foo_model(5), 5)
+        self.assertEqual(self.foo_model(2), 3)
+        self.assertEqual(self.bar_model(5), 5)
+        self.assertEqual(self.bar_model(2), 3)
+    
+    def test_run_on_param_grid(self):
+        run_on_param_grid(BarModel, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        # TODO add assertions
+    
+    def test_calibrate_on_param_grid(self):
+        calibrate_on_param_grid(BarModel, 3, target=lambda x: x**2, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        # TODO add assertions
+    
+    def test_calibrate_on_run_results(self):
+        run_results = run_on_param_grid(BarModel, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        calibrate_on_run_results(run_results, target=lambda x: x**2)
+
 class Mass(object):
     def __init__(self, magnitude, position):
         self.magnitude = magnitude
         self.position = position
 
     def __mul__(self, other):
-        return self.magnitude * other.magnitude
+        if isinstance(other, float):
+            return self.magnitude * other
+        elif isinstance(other, Mass):
+            return self.magnitude * other.magnitude
 
 
 class NewtonianGravityModel():
@@ -45,7 +74,7 @@ class NewtonianGravityModel():
                 (distance) ** 2)
 
 
-class NewtonianGravityUnittest(unittest.TestCase):
+class NewtonianGravityTest(unittest.TestCase):
     def setUp(self):
         self.model_a = NewtonianGravityModel(gravitational_constant=8e-11)
         self.model_b = NewtonianGravityModel(gravitational_constant=6e-6)
@@ -62,40 +91,12 @@ class NewtonianGravityUnittest(unittest.TestCase):
 
 
     def test_call(self):
-        a_vs_b = model(self.mass_a, self.mass_b)
+        a_vs_b = self.model_a(self.mass_a, self.mass_b)
         self.assertEqual(a_vs_b, 8e-11)
-        b_vs_c = model(self.mass_b, self.mass_c)
+        b_vs_c = self.model_a(self.mass_b, self.mass_c)
         self.assertEqual(b_vs_c, 8e-11)
 
 
 
 if __name__ == "__main__":
     unittest.main()
-    # manual test; put into a unit test
-    try:
-        model = AbstractModel()
-    except TypeError:
-        print("ok")
-    # manual test; put into a unit test
-    model = FooModel(3)
-    assert model(5) == 5
-    assert model(2) == 3
-    # manual test; put into a unit test
-    model = BarModel(3, [1, 2, 3])
-    assert model(5) == 5
-    assert model(2) == 3
-    # manual test; put into a unit test
-    model = BarModel(3, [1, 2, 3])
-    print(run_on_param_grid(BarModel,
-                            3,
-                            number=[-1, 0, 1],
-                            arr=[[1, 2, 3], [-1, 2, 5]]))
-    # manual test; put into a unit test
-    model = BarModel(3, [1, 2, 3])
-    print(calibrate_on_param_grid(BarModel, 3, target=lambda x: x**2,
-                                  number=[-1, 0, 1],
-                                  arr=[[1, 2, 3], [-1, 2, 5]]))
-    # manual test; put into a unit test
-    model = BarModel(3, [1, 2, 3])
-    run_results = run_on_param_grid(Bar, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
-    print(calibrate_on_run_results(run_results, target=lambda x: x**2))
