@@ -155,6 +155,6 @@ def calibrate_on_run_results(results, target):
         run_on_param_grid
     """
     optimal_param_set = min({k: target(k, v)
-        for k, v in results.items()},
+        for k, v in results},
         key=results.get)
     return optimal_param_set, results.get(optimal_param_set)
