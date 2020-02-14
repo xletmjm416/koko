@@ -50,7 +50,7 @@ def product_of_dicts(**kwargs):
     Args:
         kwargs: dictionary of lists
     Returns:
-        list of dictionaries containing combinations of kwargs given.
+        list of dictionaries containing combinations of key-value pairs given in elements of kwargs.
     Source: https://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists"""
     keys = kwargs.keys()
     vals = kwargs.values()
@@ -59,7 +59,12 @@ def product_of_dicts(**kwargs):
 
 
 def run_on_param_grid(model, data, **params_ranges):
-    """Run model on grid of its params. Pass the arguments
+    """Run model on grid of its params.
+    
+    If you just want to run the model (on one set of 
+    parameters and one dataset), use `model(**params)(data)` instead.
+    
+    Pass the arguments
     of the model as keyword arguments with list values:
     ```
     run_on_param_grid(mymodel, mydata, a=[1, 2], b=[True, False])
@@ -73,9 +78,10 @@ def run_on_param_grid(model, data, **params_ranges):
     ```
 
     Todo:
-        Input validation
-        Use recursive_dict
-        do not rely on key ordering
+        . Input validation
+        . Use recursive_dict/fix the key convention
+        . do not rely on key ordering
+        . if you don't pass a list, fix value and not show up in results as separate key
 
     Args:
         model: inherits from AbstractModel
@@ -83,7 +89,8 @@ def run_on_param_grid(model, data, **params_ranges):
             for each parameter combination
         params_ranges: keyword arguments of the model with lists of values
     Returns:
-        dict: key is a tuple made from a combination of params
+        dict: key is a tuple made from a combination of params,
+            val is the result of the run
     """
     results = dict()
     for params in product_of_dicts(**params_ranges):
@@ -127,7 +134,9 @@ def calibrate_on_run_results(results, target):
         results: returned from run_on_param_grid
         target: a function that accepts two positional arguments: parameters used in the model (as a stringified dict) and a possible model output.
     See:
-        calibrate_on_param_grid"""
+        calibrate_on_param_grid
+        run_on_param_grid
+    """
     optimal_param_set = min({k: target(k, v) 
         for k, v in results.items()},
         key=results.get)
