@@ -79,8 +79,9 @@ def run_on_param_grid(
 
     If you pass a model object as `model`, it will call `model.reparam(**new_parameters)`
     for each point on the grid. If you pass a class inheriting from `AbstractModel` instead,
-    it will create the models from scratch every time. This may be important if your `model.__init__`
-    and `model.__call__` have different calibration procedures.
+    it will create the models from scratch every time. This may be very important if your `model.__init__`
+    and `model.__call__` have different calibration procedures, or when the model depends on the history
+    of its reparametrisation.
 
     Pass the arguments of the model as keyword arguments with list values.
 
@@ -100,14 +101,18 @@ def run_on_param_grid(
 
         ```
         >>> sample_model = MyModel(a=5, b=6)
-        >>> run_on_param_grid(MyModel, mydata, a=[1, 2], b=[True, False])
+        >>> run_on_param_grid(sample_model, mydata, a=[1, 2], b=[True, False])
         ```
         will run the following models on mydata:
         ```
-        sample_model.reparam(a=1, b=True)(mydata)
-        sample_model.reparam(a=2, b=True)(mydata)
-        sample_model.reparam(a=1, b=False)(mydata)
-        sample_model.reparam(a=2, b=False)(mydata)
+        sample_model.reparam(a=1, b=True)
+        sample_model(mydata)
+        sample_model.reparam(a=2, b=True)
+        sample_model(mydata)
+        sample_model.reparam(a=1, b=False)
+        sample_model(mydata)
+        sample_model.reparam(a=2, b=False)
+        sample_model(mydata)
         ```
 
     Todo:
@@ -127,9 +132,10 @@ def run_on_param_grid(
     """
     def inner(params):
         if isinstance(model, AbstractModel.__class__):
-            return (params, model.reparam(**params)(data))
-        elif isinstance(model, AbstractModel):
             return (params, model(**params)(data))
+        elif isinstance(model, AbstractModel):
+            model.reparam(**params)
+            return (params, model(data))
         else:
             raise TypeError(
                 "can only pass class inheriting from AbstractModel or an object of such class as model"
