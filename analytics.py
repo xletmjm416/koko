@@ -5,8 +5,7 @@ Author:
     Mikolaj Metelski
 """
 
-from collections import defaultdict
-from collections import Mapping
+from collections import Mapping, defaultdict
 from itertools import product
 
 

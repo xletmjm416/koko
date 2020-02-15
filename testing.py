@@ -4,13 +4,13 @@
 Author:
     Mikolaj Metelski
 """
-from core import AbstractModel
-from analytics import \
-    run_on_param_grid, \
-    calibrate_on_param_grid, \
-    calibrate_on_run_results
-import numpy as np
 import unittest
+
+import numpy as np
+
+from analytics import (calibrate_on_param_grid, calibrate_on_run_results,
+                       run_on_param_grid)
+from core import AbstractModel
 
 
 class FooModel(AbstractModel):
