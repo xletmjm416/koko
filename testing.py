@@ -12,12 +12,14 @@ from analytics import \
 import numpy as np
 import unittest
 
+
 class FooModel(AbstractModel):
     def __init__(self, parameter: float):
         self.parameter = parameter
 
     def __call__(self, data: float) -> float:
         return max(data, self.parameter)
+
 
 class BarModel(AbstractModel):
     def __init__(self, number: float, arr: list):
@@ -26,6 +28,7 @@ class BarModel(AbstractModel):
 
     def __call__(self, data: float) -> float:
         return max(self.number, max(data, max(self.arr)))
+
 
 class AbstractModelTest(unittest.TestCase):
     def setUp(self):
@@ -40,18 +43,29 @@ class AbstractModelTest(unittest.TestCase):
         self.assertEqual(self.foo_model(2), 3)
         self.assertEqual(self.bar_model(5), 5)
         self.assertEqual(self.bar_model(2), 3)
-    
+
     def test_run_on_param_grid(self):
-        run_on_param_grid(BarModel, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        run_on_param_grid(BarModel,
+                          3,
+                          number=[-1, 0, 1],
+                          arr=[[1, 2, 3], [-1, 2, 5]])
         # TODO add assertions
-    
+
     def test_calibrate_on_param_grid(self):
-        calibrate_on_param_grid(BarModel, 3, target=lambda x: x**2, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        calibrate_on_param_grid(BarModel,
+                                3,
+                                target=lambda x: x**2,
+                                number=[-1, 0, 1],
+                                arr=[[1, 2, 3], [-1, 2, 5]])
         # TODO add assertions
-    
+
     def test_calibrate_on_run_results(self):
-        run_results = run_on_param_grid(BarModel, 3, number=[-1, 0, 1], arr=[[1, 2, 3], [-1, 2, 5]])
+        run_results = run_on_param_grid(BarModel,
+                                        3,
+                                        number=[-1, 0, 1],
+                                        arr=[[1, 2, 3], [-1, 2, 5]])
         calibrate_on_run_results(run_results, target=lambda x: x**2)
+
 
 class Mass(object):
     def __init__(self, magnitude, position):
@@ -71,8 +85,7 @@ class NewtonianGravityModel():
 
     def __call__(self, mass1: Mass, mass2: Mass) -> float:
         distance = np.abs(mass1.position - mass1.position)
-        return ((self.gravitational_constant * mass1 * mass1) /
-                (distance) ** 2)
+        return ((self.gravitational_constant * mass1 * mass1) / (distance)**2)
 
 
 class NewtonianGravityTest(unittest.TestCase):
@@ -85,18 +98,15 @@ class NewtonianGravityTest(unittest.TestCase):
         self.mass_d = Mass(-1.0, 0.0)
         self.mass_e = Mass(-1.0, 1.0)
 
-
     def test_init(self):
         model = NewtonianGravityModel(gravitational_constant=8e-11)
         self.assertEqual(model.gravitational_constant, 8e-11)
-
 
     def test_call(self):
         a_vs_b = self.model_a(self.mass_a, self.mass_b)
         self.assertEqual(a_vs_b, 8e-11)
         b_vs_c = self.model_a(self.mass_b, self.mass_c)
         self.assertEqual(b_vs_c, 8e-11)
-
 
 
 if __name__ == "__main__":

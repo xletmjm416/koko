@@ -41,8 +41,10 @@ def map_nested(func, node, path=[]):
     new_path = path.copy()
     if isinstance(node, Mapping):
         for k, v in node.items():
-            return {k: map_nested(func, v, new_path + [k])
-                for k, v in node.items()}
+            return {
+                k: map_nested(func, v, new_path + [k])
+                for k, v in node.items()
+            }
     else:
         return func(node, new_path)
 
@@ -103,6 +105,7 @@ def run_on_param_grid(model, data, **params_ranges):
     """
     def inner(params):
         return (params, model(**params)(data))
+
     return map(inner, product_of_dicts(**params_ranges))
 
 
@@ -156,6 +159,6 @@ def calibrate_on_run_results(results, target):
         run_on_param_grid
     """
     optimal_param_set = min({k: target(k, v)
-        for k, v in results},
-        key=results.get)
+                             for k, v in results},
+                            key=results.get)
     return optimal_param_set, results.get(optimal_param_set)
