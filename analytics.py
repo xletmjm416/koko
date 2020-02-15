@@ -5,7 +5,11 @@ Author:
     Mikolaj Metelski
 """
 
-from typing import Any, Union, Dict, List, Tuple
+import json
+import pathlib
+import pickle
+import uuid
+from typing import Any, Dict, List, Tuple, Union
 
 import helpers
 from core import AbstractModel
@@ -73,16 +77,20 @@ def run_on_param_grid(
         List[Tuple[dict, Any]]: list of tuples made from a combination of params, val is the result of the run
     """
     def inner(params):
+        run_uuid = uuid.uuid4()
         if isinstance(model, AbstractModel.__class__):
-            return (params, model(**params)(data))
+            run_label = '_'.join([model.__name__, str(run_uuid)])
+            return (run_label, params, model(**params)(data))
         elif isinstance(model, AbstractModel):
+            run_label = '_'.join([model.__class__.__name__, str(run_uuid)])
             model.reparam(**params)
-            return (params, model(data))
+            return (run_label, params, model(data))
         else:
             raise TypeError(
                 "can only pass class inheriting from AbstractModel or an object of such class as model"
             )
 
+    # TODO parallelize here
     return map(inner, helpers.product_of_dicts(**params_ranges))
 
 
@@ -136,6 +144,46 @@ def calibrate_on_run_results(results, target):
         run_on_param_grid
     """
     optimal_param_set = min({k: target(k, v)
-                             for k, v in results},
+                             for l, k, v in results},
                             key=results.get)
     return optimal_param_set, results.get(optimal_param_set)
+
+
+def run_and_pickle(model: AbstractModel, data: Any) -> None:
+    """Run model on data and save results in a pickle file.
+
+    By default, saves the output in './out/ModelName-uuid' folder
+    together with the parameters used.
+    
+    Args:
+        model (AbstractModel): model to be run on data
+        data (Any): self-explanatory
+    
+    Returns:
+        None
+    """
+    run_label = '_'.join([model.__class__.__name__, str(uuid.uuid4())])
+    output = model(data)
+    out_path = pathlib.Path("./out") / run_label
+    path = out_path.mkdir(parents=True, exist_ok=False)
+    with (out_path / "parameters.json").open("w+") as file:
+        json.dump(model.get_model_tree(), file)
+    with (out_path / "data.pickle").open("wb+") as file:
+        pickle.dump(output, file)
+    return
+
+
+def pickle_run_results(results):
+    """Pickle run results. By default, a model run is saved as './out/ModelName-uuid' format.
+    
+    Args:
+        results ([type]): [description]
+    """
+    for label, param, result in results:
+        out_path = pathlib.Path("./out") / label
+
+        path = out_path.mkdir(parents=True, exist_ok=False)
+        with (out_path / "parameters.json").open("w+") as file:
+            json.dump(param, file)
+        with (out_path / "data.pickle").open("wb+") as file:
+            pickle.dump(result, file)

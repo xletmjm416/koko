@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 
 from analytics import (calibrate_on_param_grid, calibrate_on_run_results,
-                       run_on_param_grid)
+                       pickle_run_results, run_and_pickle, run_on_param_grid)
 from core import AbstractModel
 
 
@@ -74,7 +74,7 @@ class AbstractModelTest(unittest.TestCase):
                                         3,
                                         number=[-1, 0, 1],
                                         arr=[[1, 2, 3], [-1, 2, 5]])
-        calibrate_on_run_results(run_results, target=lambda x: x**2)
+        calibrate_on_run_results(run_results, target=lambda x, y: y**2)
 
     def test_get_model_tree(self):
         # check for raises
@@ -88,6 +88,14 @@ class AbstractModelTest(unittest.TestCase):
         g = self.nested_model.reparam(parameter=5)
         # g == {'alpha': 3, 'model': {parameter: 5}}]}
         pass
+
+    def test_pickle_run_results(self):
+        run_results = run_on_param_grid(BarModel,
+                                        3,
+                                        number=[-1, 0, 1],
+                                        arr=[[1, 2, 3], [-1, 2, 5]])
+        ret = pickle_run_results(run_results)
+        # TODO add assertions
 
 
 class Mass(object):
