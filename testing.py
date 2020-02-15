@@ -78,10 +78,10 @@ class AbstractModelTest(unittest.TestCase):
 
     def test_get_model_tree(self):
         # check for raises
-        self.foo_model.get_model_tree()
-        self.nested_model.get_model_tree()
-        # self.foo_model.get_model_tree() == {'parameter': 3}
-        # self.nested_model.get_model_tree() == {'alpha': 3, 'model': {parameter: 3}}]}
+        A = self.foo_model.get_model_tree()
+        B = self.nested_model.get_model_tree()
+        # A == {'parameter': 3}
+        # B == {'alpha': 3, 'model': {parameter: 3}}]}
         pass
 
     def test_reparam(self):
