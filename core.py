@@ -17,8 +17,8 @@ class AbstractModel(ABC):
     def __call__(self, *data):
         pass
 
-    def get_model_tree(self):
-        """Traverse model dependency tree whose leaves are non-AbstractModel parameters
+    def get_model_tree(self) -> dict:
+        """Return model dependency tree whose leaves are non-`AbstractModel` parameters
         of the model.
         
         Returns:
@@ -63,31 +63,23 @@ class AbstractModel(ABC):
             ```
             >>> print_tree(A) # printtree is not yet implemented
             A
-            |-a=3
+            |-a=3 # a is in the top level for the tree
             |-B=4
             | |-a=True # another occurence of a with different value
             | +-b=False
-            +-C
-            |-g=5
-            |-E
-            | +-d=SomeObject(a=5, b=4) # d does not inherit from AbstractModel
-            |-D
-            | +-g=5
-            +-F
+            |-C
+            | |-a=SomeObject(a=5, b=7) # another occurence here
+            | +-d=SomeObject(a=5, b=4) # a is inside an object that is a parameter
             
             >>> A.reparam(a=6)
             A
-            |-a=6
+            |-a=6 # this is the one changed when A.a = 6
             |-B=4
             | |-a=6 # replaces all occurences
             | +-b=False
-            +-C
-            |-g=5
-            |-E
-            | +-d=SomeObject(a=5, b=4) # d does not inherit from AbstractModel
-            |-D
-            | +-g=5
-            +-F
+            |-C
+            | |-a=6 # replaces all occurences
+            | +-d=SomeObject(a=5, b=4) # SomeObject does not inherit from AbstractModel
             ```
         
         Returns:
