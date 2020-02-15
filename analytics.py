@@ -8,6 +8,7 @@ Author:
 from collections import Mapping, defaultdict
 from itertools import product
 from typing import Any, Union
+from core import AbstractModel
 
 
 def recursive_dict():
@@ -76,18 +77,38 @@ def run_on_param_grid(
     If you just want to run the model (on one set of
     parameters and one dataset), use `model(**params)(data)` instead.
 
-    Pass the arguments
-    of the model as keyword arguments with list values:
-    ```
-    run_on_param_grid(mymodel, mydata, a=[1, 2], b=[True, False])
-    ```
-    will run the following models on mydata:
-    ```
-    mymodel(a=1, b=True)(mydata)
-    mymodel(a=2, b=True)(mydata)
-    mymodel(a=1, b=False)(mydata)
-    mymodel(a=2, b=False)(mydata)
-    ```
+    If you pass a model object as `model`, it will call `model.reparam(**new_parameters)`
+    for each point on the grid. If you pass a class inheriting from `AbstractModel` instead,
+    it will create the models from scratch every time. This may be important if your `model.__init__`
+    and `model.__call__` have different calibration procedures.
+
+    Pass the arguments of the model as keyword arguments with list values.
+
+    Examples:
+        ```
+        >>> class MyModel(AbstractModel):
+        >>>    ...
+        >>> run_on_param_grid(MyModel, mydata, a=[1, 2], b=[True, False])
+        ```
+        will run the following models on mydata:
+        ```
+        MyModel(a=1, b=True)(mydata)
+        MyModel(a=2, b=True)(mydata)
+        MyModel(a=1, b=False)(mydata)
+        MyModel(a=2, b=False)(mydata)
+        ```
+
+        ```
+        >>> sample_model = MyModel(a=5, b=6)
+        >>> run_on_param_grid(MyModel, mydata, a=[1, 2], b=[True, False])
+        ```
+        will run the following models on mydata:
+        ```
+        sample_model.reparam(a=1, b=True)(mydata)
+        sample_model.reparam(a=2, b=True)(mydata)
+        sample_model.reparam(a=1, b=False)(mydata)
+        sample_model.reparam(a=2, b=False)(mydata)
+        ```
 
     Todo:
         [ ] Input validation
@@ -105,7 +126,14 @@ def run_on_param_grid(
         List[Tuple[dict, Any]]: list of tuples made from a combination of params, val is the result of the run
     """
     def inner(params):
-        return (params, model(**params)(data))
+        if isinstance(model, AbstractModel.__class__):
+            return (params, model.reparam(**params)(data))
+        elif isinstance(model, AbstractModel):
+            return (params, model(**params)(data))
+        else:
+            raise TypeError(
+                "can only pass class inheriting from AbstractModel or an object of such class as model"
+            )
 
     return map(inner, product_of_dicts(**params_ranges))
 
