@@ -9,8 +9,9 @@ Koko:
 - [x] runs arbitrary models on arbitrary data
 - [x] calibrates arbitrary model params (minimisation with arbitrary targets)
 - [ ] calibrates arbitrary model params (with root solving)
-- [ ] handles reparametrisation when children's models depend on the parent's parameter
-- [ ] handles passing the children's parameter to the parent's call (clumsily)
+- [x] propagates reparametrisation of the model to the dependent models
+- [ ] resolves ambiguity in reparametrisation when multiple dependent models have the same parameter name
+- [x] handles passing the dependent's parameter to the independent's call
 - [ ] validates model assumptions that depend on:
 	- [ ] model parameters
 	- [ ] data
