@@ -57,6 +57,9 @@ class AbstractModel(ABC):
         at the top level of the model. `reparam` instead replaces all occurences
         of the parameters in the leaves of the model tree with values.
 
+        If the leaf is an object, its `setattr` will *not* be called but the object replaced
+        altogether.
+
         Examples:
             uppercase letters inherit from AbstractModel, lowercase do not.
             ```
