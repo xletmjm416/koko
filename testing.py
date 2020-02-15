@@ -31,12 +31,12 @@ class BarModel(AbstractModel):
 
 
 class NestedModel(AbstractModel):
-    def __init__(self, number: float, model: AbstractModel):
-        self.number = number
+    def __init__(self, alpha: float, model: AbstractModel):
+        self.alpha = alpha
         self.model = model
 
     def __call__(self, data: float) -> float:
-        return max(self.number, model(self.number))
+        return max(self.alpha, model(self.alpha))
 
 
 class AbstractModelTest(unittest.TestCase):
@@ -77,8 +77,16 @@ class AbstractModelTest(unittest.TestCase):
         calibrate_on_run_results(run_results, target=lambda x: x**2)
 
     def test_get_model_tree(self):
+        # check for raises
+        self.foo_model.get_model_tree()
+        self.nested_model.get_model_tree()
         # self.foo_model.get_model_tree() == {'parameter': 3}
-        # self.nested_model.get_model_tree() == {'parameter': 3, 'model': {parameter: 3}}]}
+        # self.nested_model.get_model_tree() == {'alpha': 3, 'model': {parameter: 3}}]}
+        pass
+
+    def test_reparam(self):
+        g = self.nested_model.reparam(parameter=5)
+        # g == {'alpha': 3, 'model': {parameter: 5}}]}
         pass
 
 
