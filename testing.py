@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-:author: Mikolaj Metelski
+Author:
+    Mikolaj Metelski
 """
 from core import AbstractModel
 from analytics import \
