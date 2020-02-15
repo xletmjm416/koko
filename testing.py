@@ -30,10 +30,20 @@ class BarModel(AbstractModel):
         return max(self.number, max(data, max(self.arr)))
 
 
+class NestedModel(AbstractModel):
+    def __init__(self, number: float, model: AbstractModel):
+        self.number = number
+        self.model = model
+
+    def __call__(self, data: float) -> float:
+        return max(self.number, model(self.number))
+
+
 class AbstractModelTest(unittest.TestCase):
     def setUp(self):
         self.foo_model = FooModel(3)
         self.bar_model = BarModel(3, [1, 2, 3])
+        self.nested_model = NestedModel(5, FooModel(3))
 
     def test_init(self):
         self.assertRaises(TypeError, AbstractModel)
@@ -65,6 +75,11 @@ class AbstractModelTest(unittest.TestCase):
                                         number=[-1, 0, 1],
                                         arr=[[1, 2, 3], [-1, 2, 5]])
         calibrate_on_run_results(run_results, target=lambda x: x**2)
+
+    def test_get_model_tree(self):
+        # self.foo_model.get_model_tree() == {'parameter': 3}
+        # self.nested_model.get_model_tree() == {'parameter': 3, 'model': {parameter: 3}}]}
+        pass
 
 
 class Mass(object):
