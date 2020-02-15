@@ -33,7 +33,6 @@ class AbstractModel(ABC):
         return map_nested(func, self.__dict__.copy())
 
     def __setattr__(self, name, value):
-        # TODO add reparam propagation
         try:
             val = getattr(
                 self, name
@@ -47,13 +46,12 @@ class AbstractModel(ABC):
                 return super().__setattr__(name, value)
         except:
             # fallback on the default setattr
-            # TODO setattr will set parameter at top level - fix
             return super().__setattr__(name, value)
 
     def reparam(self, **parameters) -> dict:
-        """Propagate reparametrisation to all leaved of the model tree.
+        """Propagate reparametrisation to all leaves of the model tree.
         
-        The expected behaviour of model.param = 5 is to set the parameter value
+        The expected behaviour of `model.param = 5` is to set the parameter value
         at the top level of the model. `reparam` instead replaces all occurences
         of the parameters in the leaves of the model tree with values.
 
