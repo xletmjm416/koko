@@ -5,7 +5,7 @@ Author:
     Mikolaj Metelski
 """
 from abc import ABC, abstractmethod
-from analytics import map_nested
+from helpers import map_nested
 
 
 class AbstractModel(ABC):
