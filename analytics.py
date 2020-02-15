@@ -7,6 +7,7 @@ Author:
 
 from collections import Mapping, defaultdict
 from itertools import product
+from typing import Any, Union
 
 
 def recursive_dict():
@@ -67,7 +68,9 @@ def product_of_dicts(**kwargs):
         yield dict(zip(keys, instance))
 
 
-def run_on_param_grid(model, data, **params_ranges):
+def run_on_param_grid(
+        model: Union[AbstractModel.__class__, AbstractModel], data: Any,
+        **params_ranges: dict[str, Any]) -> List[Tuple[dict, Any]]:
     """Run model on grid of its params.
 
     If you just want to run the model (on one set of
@@ -92,15 +95,14 @@ def run_on_param_grid(model, data, **params_ranges):
         [x] do not rely on key ordering
         [ ] if you don't pass a list, fix value and do
             not show up in results as separate key
-
     Args:
-        model: inherits from AbstractModel
-        data: model will be called with the same data
+        model (Union[AbstractModel.__class__, AbstractModel]): inherits from AbstractModel or is a model object itself
+        data (Any): model will be called with the same data
             for each parameter combination
         params_ranges: keyword arguments of the model with lists of values
+    
     Returns:
-        dict: key is a tuple made from a combination of params,
-            val is the result of the run
+        List[Tuple[dict, Any]]: list of tuples made from a combination of params, val is the result of the run
     """
     def inner(params):
         return (params, model(**params)(data))
