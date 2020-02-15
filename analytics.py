@@ -5,7 +5,7 @@ Author:
     Mikolaj Metelski
 """
 
-from typing import Any, Union
+from typing import Any, Union, Dict, List, Tuple
 
 import helpers
 from core import AbstractModel
@@ -13,7 +13,7 @@ from core import AbstractModel
 
 def run_on_param_grid(
         model: Union[AbstractModel.__class__, AbstractModel], data: Any,
-        **params_ranges: dict[str, Any]) -> List[Tuple[dict, Any]]:
+        **params_ranges: Dict[str, Any]) -> List[Tuple[dict, Any]]:
     """Run model on grid of its params.
 
     If you just want to run the model (on one set of
