@@ -36,11 +36,6 @@ Feel free to build your extensions on top of Koko. This is what it's for - on it
 Theoretical foundation
 ======================
 
-Koko's `core` handles the abstract notions of the models, but it is not related to any model in and of itself.
-Once a model is implemented using Koko's base AbstractModel class, a wide array of analytics can be done with very few function calls.
-The `historical-simulation` module includes the simplest market risk models as useful examples: historical simulation VaR, 
-additive returns and relative returns, but these may or may not be used.
-
 Typically one mathematically treats a model as a function of input data $x$, given parameters $p$:
 $$y = f(x; p)$$
 and it outputs $y$. Note there is a clear distiction between model *input*, 
@@ -97,16 +92,17 @@ Newtonian gravity is a one parameter model: G is the ony free parameter. It take
 Koko design guidelines
 ======================
 
-Module `koko` has the following structure:
-- core
-	- AbstractModel
-- analytics
-	- run_on_param_grid
-	- calibrate_on_param_grid
+Koko's modules are as follows:
+- [x] `core` handles the abstract notions of the models, but it is not related to any model in and of itself.
+Once a model is implemented using Koko's base AbstractModel class, a wide array of analytics can be done with very few function calls.
+- [x] `analytics` proves functions to provide common analysis tasks, such as calibration and model running.
+- [ ] `assumption` provides decorators and base models for assumption verification.
+- [ ] `calibrate` helps in constructing you calibration workflows.
 
 Koko naming conventions:
 - Name classes inheriting from Model *Model, e.g. RadioactiveDecayModel, LeastSquaresModel, MyMachineLearningModel, CoulombModel
 
+The general conding guidelines are as follows:
 - favour OOP over procedural programming
 - favour pure functions over impure (in functional sense)
 - favour iterators
