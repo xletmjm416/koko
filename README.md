@@ -21,6 +21,8 @@ Koko:
 	- [ ] evaluates model performance in terms of time taken for computation
 	- [ ] calculates pairwise parameters' change impacts (e.g. impact of changing from one set of parameters to the next)
 	- [ ] calculates pairwise parameters' change impacts on a parameter grid (all combinations of given parameter sets)
+- [ ] eases out the onboarding of your current model implementations into Koko by providing:
+	- [ ] function decorators that create a relevant model class
 - [ ] handles analysis of models on large datasets through an HDF5 store
 - [ ] supports cloud computing
 - [x] is thoroughly unit tested and documented
@@ -39,7 +41,9 @@ Theoretical foundation
 Typically one mathematically treats a model as a function of input data $x$, given parameters $p$:
 $$y = f(x; p)$$
 and it outputs $y$. Note there is a clear distiction between model *input*, 
-which is usually market data, and model *parameters*, which once calibrated are the same for any data inputted.
+which is usually a result of an experiment, market data, output from a random number generator or 
+some other type of independent observation, whereas model *parameters*, once calibrated, are the fixed for any data inputted.
+Calibration is, in general, a procedure that finds parameters that best match the observed data.
 We can therefore consider models of fixed parameters to be functions of data only. 
 The models themselves are outputs of model factories, which must be passed given parameters:
 $$model = factory(p)$$
