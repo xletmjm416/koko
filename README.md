@@ -11,7 +11,7 @@ Koko:
 - [ ] calibrates arbitrary model params (with root solving)
 - [x] propagates reparametrisation of the model to the dependent models
 - [ ] resolves ambiguity in reparametrisation when multiple dependent models have the same parameter name
-- [x] handles passing the dependent's parameter to the independent's call
+- [ ] handles passing the dependent's parameter to the independent's call
 - [ ] validates model assumptions that depend on:
   - [ ] model parameters
   - [ ] data
@@ -23,16 +23,16 @@ Koko:
   - [ ] calculates pairwise parameters' change impacts on a parameter grid (all combinations of given parameter sets)
 - [ ] eases out the onboarding of your current model implementations into Koko by providing:
   - [ ] function decorators that create a relevant model class
-- [ ] handles analysis of models on large datasets through an HDF5 store
+- [ ] handles analysis of models on large datasets
 - [x] pickles model output and saves it together with parameters
-- [ ] supports cloud computing
+- [ ] supports parallel computing on a clusted with Dask
 - [x] is thoroughly unit tested and documented
 
 Note that throughout documentation:
 
-- empty tickbox [ ] means "feature planned",
-- checked box [x] means "feature implemented",
-- striketrough or striked box [-] means "feature formerly planned, but now abandoned."
+- empty tickbox `[ ]` means "feature planned",
+- checked box `[x]` means "feature implemented",
+- striketrough or striked box `[-]` means "feature formerly planned, but now abandoned."
 
 Koko was built as a personal project by Mikolaj Metelski under MIT License.
 Feel free to build your extensions on top of Koko. This is what it's for - on its own, it does nothing.
@@ -87,13 +87,13 @@ for params in itertools.product(params1, params2, params3, params4):
 ```
 
 will run the model on each point of the parameters grid.
-There is a function that does exactly this, but a bit more elegantly on the inside: (and [ ] in parallel on multiple grid points)
+There is a function that does exactly this, but a bit more elegantly on the inside: (and `[ ]` in parallel on multiple grid points)
 
 ```
 koko.analytics.run_model_on_param_grid(Model, data, param1=[0.1, 0.2, 0.3], param2=[True, False])
 ```
 
-Results of the analysis will be [ ] saved in an HDF store.
+Results of the analysis will be `[ ]` saved in an HDF store.
 
 ## Terminology
 
@@ -120,33 +120,33 @@ init calibrator's parameter input is what would ordinarily be another model obje
 - calibration = a general term encompassing init calibration and run calibration
 - reparametrisation = a general term meaning replacement of the parameters inside model object and propagating those changes to submodels. it also encompasses replacement of submodels
 
-## Model objects
+## `[x]` Model objects
 
 Model object is an instance of any model class. You can make any Python callable a model class by wrapping it with `kokomodel` for easy onboarding. This will convert positional arguments of the callable into model input arguments and keyword arguments into parameter arguments. Model objects are instantiated by passing parameter input to model class's `__call__` (meaning as arguments to the model object's `__init__`).
 
-Once you have a model model class or a model object, you can run all sorts of analysis with them, using the methods inherited from `AbstractModel` or provided by `koko.analytics`. You can set other model objects as parameters or replace submodels wherever you want to create complex model dependency trees. `koko` will take care of parallelizing the computation, assessing your models' performance, profiling, saving model outputs for reuse, calibration and assumption verification.
+Once you have a model model class or a model object, you can run all sorts of analysis with them, using the methods inherited from `AbstractModel` or provided by `koko.analytics`. You can set other model objects as parameters or replace submodels wherever you want to create complex model dependency trees. `koko` will take care of `[ ]` parallelizing the computation, `[ ]` assessing your models' performance, `[ ]` profiling, `[x]` saving model outputs for reuse, `[x]` calibration and `[ ]` assumption verification.
 
 ## Calibrators
 
 Both init calibrators and run calibrators are model objects of the Calibrator class, but they are a bit different conceptually so it is worth distinguishing between the two. Their behaviour differs depending on whether calibrator is a static attribute of a model class (init calibrator) or a parameter of a model object (run calibrator).
 
-### Run calibrator
+### `[x]` Run calibrator
 
 Run calibrator is a model object (A) whose model inputs are a model object (B) and B's model input and whose (A's) model output is a dictionary whose keys are B's parameter labels. When a model object (A) has some run calibrators as its parameters (i.e. A's submodel that is a calibrator), they will be discovered and all called (ordered alphabetically) in A's `__call__`. After that, A's wil call `reparam` with the calibrator's output. The run calibrators will be passed the model object (self) as first argument and model input as the other argument. It is bad pracice to rely on run calibrators' order; run calibrators should be independent of each other by design. (TODO: decide? You may or may not want to adjust model object's parameters with calibrator's output; if you do, just pass it to model object's reparam with `init_calibration=False`)
 
 Typical use case:
 You want some parameters to be adjusted (or added to the model) just prior to the run of model object's `__call__`, but they cannot be determined solely from parameter input are require model input to be known.
 
-### Init calibrator
+### `[ ]` Init calibrator
 
-Init calibrator is a model object (A) whose parameter input is something that would ordinarily be considered another model object (B's) model input. A's model output is a dictionary whose keys are B's parameter labels. When a model class (presumably the class of B) has an init calibrator A as one of its attributes, it (A) will be discovered and called in model class's `__init__` during model object instantiation. A will be passed parameter input of B as model input. If there are more than one init calibrators, they will be called alphabetically. It is bad practice to rely on init calibrators' order; init calibrators should be independent of each other by design. You may or may not want to adjust model object's parameters with calibrator's output; if you do, just pass it to model's reparam with `init_calibration=False`.
+Init calibrator is a model object (A) whose parameter input is something that would ordinarily be considered another model object (B's) model input. A's model output is a dictionary whose keys are B's parameter labels. When a model class (presumably the class of B) has an init calibrator A as one of its attributes, it (A) will be discovered and called in model class's `__init__` during model object instantiation. A will be passed parameter input of B as model input. If there are more than one init calibrators, they will be called alphabetically. It is bad practice to rely on init calibrators' order; init calibrators should be independent of each other by design. You may or may not want to adjust model object's parameters with calibrator's output; if you do, `[-]` just pass it to model's reparam with `init_calibration=False`.
 
 Typical use case:
 You want some parameters to be calculated given a fixed model input. Instead of writing this in `__init__` manually by passing the "expected" model input as parameter input, create an init calibrator and register it by making it a class attribute.
 
 *WARNING* Watch out for the memory size of init calibrators. Since their parameter input is another model object's model input, they can get very large, if you save their parameter input as parameter. The parameter will be stored in runtime memory and impact performance. Consider keeping a path to a file or some other pointer to the fixed model input data as a parameter if your dataset is large.
 
-## Assumptions
+## `[ ]` Assumptions
 
 Assumption is a model object that is similar to a run calibrator in that it accepts a model object and its model input. Assumptions have a different return, though: they can only return True or False.
 Assumptions that are parameters of a model object are called before AND after run calibrators in model object's `__call__`. It is bad pracice to rely on run assumptions' verification order; assumptions should be independent of each other by design.
@@ -205,7 +205,7 @@ The general conding guidelines are as follows:
 
 - favour OOP over procedural programming
 - favour pure functions over impure (in functional sense)
-- favour iterators
+- favour generators over fixed lists
 - favour generic variables over constants
 - never repeat same code twice
 - prove algorithm termination where possible (avoid missing elses/elifs)
