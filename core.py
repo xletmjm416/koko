@@ -92,7 +92,7 @@ class AbstractModel(ABC):
             current_value = leaf
             # last element of path is the parameter name
             param_name = path[-1]
-            if param_name in parameters:
+            if param_name in parameters and not param_name.startswith("_"):
                 node = self
                 for step in path[:-1]:
                     # traverse the path but this time get the leaf object reference
