@@ -151,41 +151,44 @@ def calibrate_on_run_results(results, target):
     return optimal_param_set, results.get(optimal_param_set)
 
 
-def run_and_pickle(model: AbstractModel, data: Any) -> None:
-    """Run model on data and save results in a pickle file.
+def run_and_pickle(model_object: AbstractModel, model_input: Any) -> None:
+    """Run model object on model input and save results in a pickle file.
 
-    By default, saves the output in './out/ModelName-uuid' folder
-    together with the parameters used.
+    By default, saves the model output in './out/Model-uuid' folder
+    together with the pickled model object and a json of the model tree.
     
     Args:
-        model (AbstractModel): model to be run on data
-        data (Any): self-explanatory
+        model_object (AbstractModel): self-explanatory
+        model_input (Any): self-explanatory
     
     Returns:
         None
     """
-    run_label = '_'.join([model.__class__.__name__, str(uuid.uuid4())])
-    output = model(data)
+    run_label = '_'.join([model_object.__class__.__name__, str(uuid.uuid4())])
+    model_output = model_object(model_input)
     out_path = pathlib.Path("./out") / run_label
     path = out_path.mkdir(parents=True, exist_ok=False)
     with (out_path / "parameters.json").open("w+") as file:
-        json.dump(model.get_model_tree(), file)
-    with (out_path / "data.pickle").open("wb+") as file:
-        pickle.dump(output, file)
+        json.dump(model_object.get_model_tree(), file)
+    with (out_path / "model_output.pickle").open("wb+") as file:
+        pickle.dump(model_output, file)
     return
 
 
-def pickle_run_results(results):
-    """Pickle run results. By default, a model run is saved as './out/ModelName-uuid' format.
+def pickle_sweep_results(results):
+    """Pickle model output.
+    
+    By default, a model output is saved as './out/Model-uuid' format.
     
     Args:
-        results: output from `run_on_param_grid`.
+        results: output from Model(**parameter_input)(model_input).
     """
-    for label, param, result in results:
+    for label, param, model_output in results:
         out_path = pathlib.Path("./out") / label
 
         path = out_path.mkdir(parents=True, exist_ok=False)
         with (out_path / "parameters.json").open("w+") as file:
             json.dump(param, file)
         with (out_path / "output.pickle").open("wb+") as file:
-            pickle.dump(result, file)
+            pickle.dump(model_output, file)
+
