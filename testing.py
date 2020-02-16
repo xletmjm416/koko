@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 
 from analytics import (calibrate_on_param_grid, calibrate_on_run_results,
-                       pickle_run_results, run_and_pickle, run_on_param_grid)
+                       pickle_sweep_results, run_and_pickle, run_on_param_grid)
 from core import AbstractModel
 
 
@@ -36,7 +36,7 @@ class NestedModel(AbstractModel):
         self.model = model
 
     def __call__(self, data: float) -> float:
-        return max(self.alpha, model(self.alpha))
+        return max(self.alpha, self.model(self.alpha))
 
 
 class AbstractModelTest(unittest.TestCase):
@@ -64,7 +64,7 @@ class AbstractModelTest(unittest.TestCase):
     def test_calibrate_on_param_grid(self):
         calibrate_on_param_grid(BarModel,
                                 3,
-                                target=lambda x: x**2,
+                                target=lambda x, y: y**2,
                                 number=[-1, 0, 1],
                                 arr=[[1, 2, 3], [-1, 2, 5]])
         # TODO add assertions
@@ -76,10 +76,10 @@ class AbstractModelTest(unittest.TestCase):
                                         arr=[[1, 2, 3], [-1, 2, 5]])
         calibrate_on_run_results(run_results, target=lambda x, y: y**2)
 
-    def test_get_model_tree(self):
+    def test_model_tree(self):
         # check for raises
-        A = self.foo_model.get_model_tree()
-        B = self.nested_model.get_model_tree()
+        A = self.foo_model.model_tree
+        B = self.nested_model.model_tree
         # A == {'parameter': 3}
         # B == {'alpha': 3, 'model': {parameter: 3}}]}
         pass
@@ -89,13 +89,17 @@ class AbstractModelTest(unittest.TestCase):
         # g == {'alpha': 3, 'model': {parameter: 5}}]}
         pass
 
-    def test_pickle_run_results(self):
+    def test_pickle_sweep_results(self):
         run_results = run_on_param_grid(BarModel,
                                         3,
                                         number=[-1, 0, 1],
                                         arr=[[1, 2, 3], [-1, 2, 5]])
-        ret = pickle_run_results(run_results)
+        ret = pickle_sweep_results(run_results)
         # TODO add assertions
+    
+    def test_AbstractModel_run(self):
+        model_output_1 = self.foo_model.run(3)
+        model_output_2 = self.nested_model.run(3)
 
 
 class Mass(object):
@@ -115,8 +119,8 @@ class NewtonianGravityModel():
         self.gravitational_constant = gravitational_constant
 
     def __call__(self, mass1: Mass, mass2: Mass) -> float:
-        distance = np.abs(mass1.position - mass1.position)
-        return ((self.gravitational_constant * mass1 * mass1) / (distance)**2)
+        distance = np.abs(mass1.position - mass2.position)
+        return ((self.gravitational_constant * (mass1 * mass1)) / (distance)**2)
 
 
 class NewtonianGravityTest(unittest.TestCase):
@@ -137,7 +141,7 @@ class NewtonianGravityTest(unittest.TestCase):
         a_vs_b = self.model_a(self.mass_a, self.mass_b)
         self.assertEqual(a_vs_b, 8e-11)
         b_vs_c = self.model_a(self.mass_b, self.mass_c)
-        self.assertEqual(b_vs_c, 8e-11)
+        self.assertEqual(b_vs_c, 2e-11)
 
 
 if __name__ == "__main__":

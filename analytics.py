@@ -17,7 +17,7 @@ from core import AbstractModel
 
 def run_on_param_grid(
         model: Union[AbstractModel.__class__, AbstractModel], data: Any,
-        **params_ranges: Dict[str, Any]) -> List[Tuple[dict, Any]]:
+        **params_ranges: Dict[str, Any]):
     """Run model on grid of its params.
 
     If you just want to run the model (on one set of
@@ -76,24 +76,25 @@ def run_on_param_grid(
         params_ranges: keyword arguments of the model with lists of values
     
     Returns:
-        List[Tuple[dict, Any]]: list of tuples made from a combination of params, val is the result of the run
+        (type): dict of run label - tuple pairs. first elemnt of tuple is parameters, second - model output.
     """
     def inner(params):
         run_uuid = uuid.uuid4()
         if isinstance(model, AbstractModel.__class__):
             run_label = '_'.join([model.__name__, str(run_uuid)])
-            return (run_label, params, model(**params)(data))
+            return {run_label: (params, model(**params)(data))}
         elif isinstance(model, AbstractModel):
             run_label = '_'.join([model.__class__.__name__, str(run_uuid)])
             model.reparam(**params)
-            return (run_label, params, model(data))
+            return {run_label: (params, model(data))}
         else:
             raise TypeError(
                 "can only pass class inheriting from AbstractModel or an object of such class as model"
             )
 
     # TODO parallelize here
-    return list(map(inner, helpers.product_of_dicts(**params_ranges)))
+    from collections import ChainMap
+    return dict(ChainMap(*map(inner, helpers.product_of_dicts(**params_ranges))))
 
 
 def calibrate_on_param_grid(model, data, target, **params_ranges):
@@ -145,10 +146,9 @@ def calibrate_on_run_results(results, target):
         calibrate_on_param_grid
         run_on_param_grid
     """
-    optimal_param_set = min({k: target(k, v)
-                             for l, k, v in results},
-                            key=results.get)
-    return optimal_param_set, results.get(optimal_param_set)
+    map_target = {label: target(*pair) for label, pair in results.items()}
+    optimal_run_label = min(map_target, key=map_target.get)
+    return optimal_run_label, results.get(optimal_run_label)
 
 
 def run_and_pickle(model_object: AbstractModel, model_input: Any) -> None:
@@ -176,13 +176,14 @@ def run_and_pickle(model_object: AbstractModel, model_input: Any) -> None:
 
 
 def pickle_sweep_results(results):
-    """Pickle model output.
+    """Pickle results of run_on_param_grid.
     
     By default, a model output is saved as './out/Model-uuid' format.
     
     Args:
         results: output from Model(**parameter_input)(model_input).
     """
+    raise NotImplementedError
     for label, param, model_output in results:
         out_path = pathlib.Path("./out") / label
 
