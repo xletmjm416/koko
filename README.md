@@ -1,4 +1,4 @@
-# Welcome to Koko Model Toolkit & extensions version 0 (draft)
+# Welcome to Koko Model Toolkit & extensions version 0.1 (draft)
 
 Koko Model Toolkit is a minimal, powerful and abstract object-oriented toolkit for implementation and analysis of mathematical models.
 
@@ -122,7 +122,8 @@ init calibrator's parameter input is what would ordinarily be another model obje
 
 ## Model objects
 
-Model object is an instance of any model class. You can make any Python callable a model class by wrapping it with `"kokomodel` for easy onboarding. This will convert positional arguments of the callable into model input arguments and keyword arguments into parameter arguments. Model objects are instantiated by passing parameter input to model class's `__call__` (meaning as arguments to the model object's `__init__`).
+Model object is an instance of any model class. You can make any Python callable a model class by wrapping it with `kokomodel` for easy onboarding. This will convert positional arguments of the callable into model input arguments and keyword arguments into parameter arguments. Model objects are instantiated by passing parameter input to model class's `__call__` (meaning as arguments to the model object's `__init__`).
+
 Once you have a model model class or a model object, you can run all sorts of analysis with them, using the methods inherited from `AbstractModel` or provided by `koko.analytics`. You can set other model objects as parameters or replace submodels wherever you want to create complex model dependency trees. `koko` will take care of parallelizing the computation, assessing your models' performance, profiling, saving model outputs for reuse, calibration and assumption verification.
 
 ## Calibrators
@@ -132,15 +133,18 @@ Both init calibrators and run calibrators are model objects of the Calibrator cl
 ### Run calibrator
 
 Run calibrator is a model object (A) whose model inputs are a model object (B) and B's model input and whose (A's) model output is a dictionary whose keys are B's parameter labels. When a model object (A) has some run calibrators as its parameters (i.e. A's submodel that is a calibrator), they will be discovered and all called (ordered alphabetically) in A's `__call__`. After that, A's wil call `reparam` with the calibrator's output. The run calibrators will be passed the model object (self) as first argument and model input as the other argument. It is bad pracice to rely on run calibrators' order; run calibrators should be independent of each other by design. (TODO: decide? You may or may not want to adjust model object's parameters with calibrator's output; if you do, just pass it to model object's reparam with `init_calibration=False`)
-Use case:
+
+Typical use case:
 You want some parameters to be adjusted (or added to the model) just prior to the run of model object's `__call__`, but they cannot be determined solely from parameter input are require model input to be known.
 
 ### Init calibrator
 
 Init calibrator is a model object (A) whose parameter input is something that would ordinarily be considered another model object (B's) model input. A's model output is a dictionary whose keys are B's parameter labels. When a model class (presumably the class of B) has an init calibrator A as one of its attributes, it (A) will be discovered and called in model class's `__init__` during model object instantiation. A will be passed parameter input of B as model input. If there are more than one init calibrators, they will be called alphabetically. It is bad practice to rely on init calibrators' order; init calibrators should be independent of each other by design. You may or may not want to adjust model object's parameters with calibrator's output; if you do, just pass it to model's reparam with `init_calibration=False`.
-Use case:
+
+Typical use case:
 You want some parameters to be calculated given a fixed model input. Instead of writing this in `__init__` manually by passing the "expected" model input as parameter input, create an init calibrator and register it by making it a class attribute.
-WARNING: Watch out for the memory size of init calibrators. Since their parameter input is another model object's model input, they can get very large, if you save their parameter input as parameter. The parameter will be stored in runtime memory and impact performance. Consider keeping a path to a file or some other pointer to the fixed model input data as a parameter if your dataset is large.
+
+*WARNING* Watch out for the memory size of init calibrators. Since their parameter input is another model object's model input, they can get very large, if you save their parameter input as parameter. The parameter will be stored in runtime memory and impact performance. Consider keeping a path to a file or some other pointer to the fixed model input data as a parameter if your dataset is large.
 
 ## Assumptions
 
@@ -211,7 +215,7 @@ The general conding guidelines are as follows:
 - use a logger
 - favour threading where possible
 - favour Python builtins over libraries
-- use simple versioning: 0, 1, 2, 3...
+- use simple versioning: 0.0, 0.1, ..., 1.0, 1.1...
 - enforce PEP style guidelines (use linter)
 - always use type hints
 - use generic typing in type hints when appropriate

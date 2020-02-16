@@ -18,7 +18,7 @@ class AbstractModel(ABC):
         pass
 
     def get_model_tree(self) -> dict:
-        """Return model dependency tree whose leaves are non-`AbstractModel` parameters
+        """Return model dependency tree whose leaves are primitive parameters
         of the model.
         
         Returns:
