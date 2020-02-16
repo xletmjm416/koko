@@ -10,7 +10,7 @@ import numpy as np
 
 from analytics import (calibrate_on_param_grid, calibrate_on_run_results,
                        pickle_sweep_results, run_and_pickle, run_on_param_grid)
-from core import AbstractModel
+from core import AbstractModel, Calibrator
 
 
 class FooModel(AbstractModel):
@@ -39,11 +39,30 @@ class NestedModel(AbstractModel):
         return max(self.alpha, self.model(self.alpha))
 
 
-class AbstractModelTest(unittest.TestCase):
+class NestedModelWithCalibrator(AbstractModel):
+    def __init__(self, alpha: float, calibrator: Calibrator):
+        self.alpha = alpha
+        self.calibrator = calibrator
+
+    def __call__(self, model_input: float) -> float:
+        return model_input + self.alpha
+
+
+class FooCalibrator(Calibrator):
+    def __init__(self):
+        pass
+
+    def __call__(self, model_object, model_input):
+        return {'alpha': 8}
+
+
+class CoreTest(unittest.TestCase):
     def setUp(self):
         self.foo_model = FooModel(3)
         self.bar_model = BarModel(3, [1, 2, 3])
         self.nested_model = NestedModel(5, FooModel(3))
+        self.nested_model_with_calibrator = NestedModelWithCalibrator(
+            5, FooCalibrator())
 
     def test_init(self):
         self.assertRaises(TypeError, AbstractModel)
@@ -94,7 +113,7 @@ class AbstractModelTest(unittest.TestCase):
                                         3,
                                         number=[-1, 0, 1],
                                         arr=[[1, 2, 3], [-1, 2, 5]])
-        ret = pickle_sweep_results(run_results)
+        self.assertRaises(NotImplementedError, pickle_sweep_results, run_results)
         # TODO add assertions
 
     def test_AbstractModel_run(self):
@@ -103,7 +122,14 @@ class AbstractModelTest(unittest.TestCase):
 
     def test_submodels(self):
         nested_model_submodels = self.nested_model.submodels
-        pass
+
+    def test_run_calibration(self):
+        # modelobject.__call__ will not call submodel calibrators
+        model_output = self.nested_model_with_calibrator(5)
+        self.assertEqual(model_output, 10)
+        # modelobject.run will call the submodel calibrators
+        model_output_run = self.nested_model_with_calibrator.run(5)
+        self.assertEqual(model_output_run, 13)
 
 
 class Mass(object):

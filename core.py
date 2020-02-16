@@ -11,6 +11,9 @@ import analytics
 
 
 class AbstractModel(ABC):
+    """Base class that proves run capabilities of the model and reparametrisation helpers.
+    """
+    
     @abstractmethod
     def __init__(self, **params):
         # TODO call init calibrators here
@@ -131,7 +134,7 @@ class AbstractModel(ABC):
         Returns:
             Any: model output
         """
-        calibrated_params = self._run_calibrators(*model_input, save)
+        calibrated_params = self._run_calibrators(*model_input, save=save)
         self.reparam(**calibrated_params)
         if save:
             return analytics.run_and_pickle(self, *model_input)
