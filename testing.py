@@ -96,10 +96,14 @@ class AbstractModelTest(unittest.TestCase):
                                         arr=[[1, 2, 3], [-1, 2, 5]])
         ret = pickle_sweep_results(run_results)
         # TODO add assertions
-    
+
     def test_AbstractModel_run(self):
         model_output_1 = self.foo_model.run(3)
         model_output_2 = self.nested_model.run(3)
+
+    def test_submodels(self):
+        nested_model_submodels = self.nested_model.submodels
+        pass
 
 
 class Mass(object):
@@ -120,7 +124,8 @@ class NewtonianGravityModel():
 
     def __call__(self, mass1: Mass, mass2: Mass) -> float:
         distance = np.abs(mass1.position - mass2.position)
-        return ((self.gravitational_constant * (mass1 * mass1)) / (distance)**2)
+        return ((self.gravitational_constant * (mass1 * mass1)) /
+                (distance)**2)
 
 
 class NewtonianGravityTest(unittest.TestCase):

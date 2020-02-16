@@ -6,16 +6,18 @@ Author:
 """
 from abc import ABC, abstractmethod
 from helpers import map_nested
+from collections import ChainMap
 import analytics
 
 
 class AbstractModel(ABC):
     @abstractmethod
     def __init__(self, **params):
+        # TODO call init calibrators here
         pass
 
     @abstractmethod
-    def __call__(self, *data):
+    def __call__(self, *model_input):
         pass
 
     @property
@@ -34,11 +36,24 @@ class AbstractModel(ABC):
 
         return map_nested(func, self.__dict__.copy())
 
+    @property
+    def submodels(self):
+        """List of first-level non-private submodels of a model object.
+        """
+        return [
+            p for p_name, p in self.__dict__.items()
+            if isinstance(p, AbstractModel) and not p_name.startswith("_")
+        ]
+
+    def get_submodels_of_type(self, type_):
+        """Return first-level submodels of a certain type. Used in calibrators discovery.
+        """
+        return filter(lambda x: isinstance(x, type_), self.submodels)
+
     def __setattr__(self, name, value):
         try:
-            val = getattr(
-                self, name
-            )  # will raise if field name is not present in the top-level model
+            # will raise if field name is not present in the top-level model
+            val = getattr(self, name)
             if isinstance(val, AbstractModel):
                 # do something
                 raise NotImplementedError(
@@ -87,7 +102,6 @@ class AbstractModel(ABC):
         Returns:
             dict: dict with True/False on leaves where parameters were replaced
         """
-        
         def func(leaf, path):
             current_value = leaf
             # last element of path is the parameter name
@@ -106,21 +120,35 @@ class AbstractModel(ABC):
         # propagate reparam change only if the parameter already exists in the model tree
         return map_nested(func, self.model_tree)
 
-    def run(self, model_input, save=True):
+    def run(self, *model_input, save=True):
         """Run model on model input and optionally save the model output.
         
         Args:
             model_input (Any): self-explanatory
-            save (bool, optional): should the model output be saved (incl. parameters used and pickled model object)?.
-                Defaults to True.
+            save (bool, optional): should the model output be saved (incl. parameters used and pickled model object)?
+                Defaults to True. Internally uses `analytics.run_and_pickle`.
         
         Returns:
             Any: model output
         """
+        calibrated_params = self._run_calibrators(*model_input, save)
+        self.reparam(**calibrated_params)
         if save:
-            return analytics.run_and_pickle(self, model_input)
+            return analytics.run_and_pickle(self, *model_input)
         else:
-            return self.__call__(model_input)
+            return self(*model_input)
+
+    def _run_calibrators(self, *model_input, save=True):
+        # call submodel calibrators
+        calibrators = self.get_submodels_of_type(Calibrator)
+        params_to_update = [
+            calibrator(self, *model_input) for calibrator in calibrators
+        ]
+        return dict(ChainMap(*params_to_update))
+
+
+class Calibrator(AbstractModel):
+    pass
 
 
 if __name__ == "__main__":
