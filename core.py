@@ -18,7 +18,8 @@ class AbstractModel(ABC):
     def __call__(self, *data):
         pass
 
-    def get_model_tree(self) -> dict:
+    @property
+    def model_tree(self) -> dict:
         """Return model dependency tree whose leaves are primitive parameters
         of the model.
         
@@ -86,9 +87,7 @@ class AbstractModel(ABC):
         Returns:
             dict: dict with True/False on leaves where parameters were replaced
         """
-        # propagate reparam change only if the parameter already exists in the model tree
-        tree = self.get_model_tree()
-
+        
         def func(leaf, path):
             current_value = leaf
             # last element of path is the parameter name
@@ -104,8 +103,9 @@ class AbstractModel(ABC):
                 return True  # place true at the leaf if parameter was updated
             return False  # place false if parameter was not updated
 
-        return map_nested(func, tree)
-    
+        # propagate reparam change only if the parameter already exists in the model tree
+        return map_nested(func, self.model_tree)
+
     def run(self, model_input, save=True):
         """Run model on model input and optionally save the model output.
         
@@ -116,7 +116,7 @@ class AbstractModel(ABC):
         
         Returns:
             Any: model output
-        """        
+        """
         if save:
             return analytics.run_and_pickle(self, model_input)
         else:

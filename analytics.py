@@ -169,7 +169,7 @@ def run_and_pickle(model_object: AbstractModel, model_input: Any) -> None:
     out_path = pathlib.Path("./out") / run_label
     path = out_path.mkdir(parents=True, exist_ok=False)
     with (out_path / "parameters.json").open("w+") as file:
-        json.dump(model_object.get_model_tree(), file)
+        json.dump(model_object.model_tree, file)
     with (out_path / "model_output.pickle").open("wb+") as file:
         pickle.dump(model_output, file)
     return model_output
@@ -191,4 +191,3 @@ def pickle_sweep_results(results):
             json.dump(param, file)
         with (out_path / "output.pickle").open("wb+") as file:
             pickle.dump(model_output, file)
-
