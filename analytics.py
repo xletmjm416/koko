@@ -27,7 +27,7 @@ def run_on_param_grid(
     for each point on the grid. If you pass a class inheriting from `AbstractModel` instead,
     it will create the models from scratch every time. This may be very important if your `model.__init__`
     and `model.__call__` have different calibration procedures, or when the model depends on the history
-    of its reparametrisation.
+    of its reparametrisation. 
 
     Pass the arguments of the model as keyword arguments with list values.
 
@@ -67,6 +67,8 @@ def run_on_param_grid(
         [x] do not rely on key ordering
         [ ] if you don't pass a list, fix value and do
             not show up in results as separate key
+        [ ] parallelize
+
     Args:
         model (Union[AbstractModel.__class__, AbstractModel]): inherits from AbstractModel or is a model object itself
         data (Any): model will be called with the same data
@@ -91,7 +93,7 @@ def run_on_param_grid(
             )
 
     # TODO parallelize here
-    return map(inner, helpers.product_of_dicts(**params_ranges))
+    return list(map(inner, helpers.product_of_dicts(**params_ranges)))
 
 
 def calibrate_on_param_grid(model, data, target, **params_ranges):
@@ -177,7 +179,7 @@ def pickle_run_results(results):
     """Pickle run results. By default, a model run is saved as './out/ModelName-uuid' format.
     
     Args:
-        results ([type]): [description]
+        results: output from `run_on_param_grid`.
     """
     for label, param, result in results:
         out_path = pathlib.Path("./out") / label
@@ -185,5 +187,5 @@ def pickle_run_results(results):
         path = out_path.mkdir(parents=True, exist_ok=False)
         with (out_path / "parameters.json").open("w+") as file:
             json.dump(param, file)
-        with (out_path / "data.pickle").open("wb+") as file:
+        with (out_path / "output.pickle").open("wb+") as file:
             pickle.dump(result, file)
