@@ -6,6 +6,7 @@ Author:
 """
 from abc import ABC, abstractmethod
 from helpers import map_nested
+import analytics
 
 
 class AbstractModel(ABC):
@@ -104,6 +105,22 @@ class AbstractModel(ABC):
             return False  # place false if parameter was not updated
 
         return map_nested(func, tree)
+    
+    def run(self, model_input, save=True):
+        """Run model on model input and optionally save the model output.
+        
+        Args:
+            model_input (Any): self-explanatory
+            save (bool, optional): should the model output be saved (incl. parameters used and pickled model object)?.
+                Defaults to True.
+        
+        Returns:
+            Any: model output
+        """        
+        if save:
+            return analytics.run_and_pickle(self, model_input)
+        else:
+            return self.__call__(model_input)
 
 
 if __name__ == "__main__":

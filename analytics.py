@@ -172,7 +172,7 @@ def run_and_pickle(model_object: AbstractModel, model_input: Any) -> None:
         json.dump(model_object.get_model_tree(), file)
     with (out_path / "model_output.pickle").open("wb+") as file:
         pickle.dump(model_output, file)
-    return
+    return model_output
 
 
 def pickle_sweep_results(results):
