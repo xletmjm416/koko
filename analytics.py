@@ -15,9 +15,8 @@ import helpers
 from core import AbstractModel
 
 
-def run_on_param_grid(
-        model: Union[AbstractModel.__class__, AbstractModel], data: Any,
-        **params_ranges: Dict[str, Any]):
+def run_on_param_grid(model: Union[AbstractModel.__class__, AbstractModel],
+                      data: Any, **params_ranges: Dict[str, Any]):
     """Run model on grid of its params.
 
     If you just want to run the model (on one set of
@@ -32,34 +31,33 @@ def run_on_param_grid(
     Pass the arguments of the model as keyword arguments with list values.
 
     Examples:
-        ```
+
         >>> class MyModel(AbstractModel):
         >>>    ...
         >>> run_on_param_grid(MyModel, mydata, a=[1, 2], b=[True, False])
-        ```
-        will run the following models on mydata:
-        ```
-        MyModel(a=1, b=True)(mydata)
-        MyModel(a=2, b=True)(mydata)
-        MyModel(a=1, b=False)(mydata)
-        MyModel(a=2, b=False)(mydata)
-        ```
 
-        ```
+        will run the following models on mydata:
+
+        >>> MyModel(a=1, b=True)(mydata)
+        >>> MyModel(a=2, b=True)(mydata)
+        >>> MyModel(a=1, b=False)(mydata)
+        >>> MyModel(a=2, b=False)(mydata)
+
+        But this code:
+
         >>> sample_model = MyModel(a=5, b=6)
         >>> run_on_param_grid(sample_model, mydata, a=[1, 2], b=[True, False])
-        ```
+
         will run the following models on mydata:
-        ```
-        sample_model.reparam(a=1, b=True)
-        sample_model(mydata)
-        sample_model.reparam(a=2, b=True)
-        sample_model(mydata)
-        sample_model.reparam(a=1, b=False)
-        sample_model(mydata)
-        sample_model.reparam(a=2, b=False)
-        sample_model(mydata)
-        ```
+
+        >>> sample_model.reparam(a=1, b=True)
+        >>> sample_model(mydata)
+        >>> sample_model.reparam(a=2, b=True)
+        >>> sample_model(mydata)
+        >>> sample_model.reparam(a=1, b=False)
+        >>> sample_model(mydata)
+        >>> sample_model.reparam(a=2, b=False)
+        >>> sample_model(mydata)
 
     Todo:
         [ ] Input validation
@@ -74,7 +72,7 @@ def run_on_param_grid(
         data (Any): model will be called with the same data
             for each parameter combination
         params_ranges: keyword arguments of the model with lists of values
-    
+
     Returns:
         (type): dict of run label - tuple pairs. first elemnt of tuple is parameters, second - model output.
     """
@@ -94,7 +92,8 @@ def run_on_param_grid(
 
     # TODO parallelize here
     from collections import ChainMap
-    return dict(ChainMap(*map(inner, helpers.product_of_dicts(**params_ranges))))
+    return dict(
+        ChainMap(*map(inner, helpers.product_of_dicts(**params_ranges))))
 
 
 def calibrate_on_param_grid(model, data, target, **params_ranges):
